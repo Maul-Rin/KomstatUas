@@ -195,8 +195,17 @@ ui <- dashboardPage(
       id = "sidebar_menu",
       menuItem("Beranda", tabName = "beranda", icon = icon("home")),
       menuItem("Manajemen Data", tabName = "manajemen", icon = icon("cogs")),
-      menuItem("Eksplorasi Data", tabName = "eksplorasi", icon = icon("chart-bar")),
-      menuItem("Uji Asumsi", tabName = "asumsi", icon = icon("check-circle")),
+      menuItem("Eksplorasi Data", tabName = "eksplorasi", icon = icon("chart-bar"),
+               menuSubItem("Statistik Deskriptif", tabName = "statistik_deskriptif"),
+               menuSubItem("Histogram", tabName = "histogram"),
+               menuSubItem("Boxplot", tabName = "boxplot"),
+               menuSubItem("Peta", tabName = "peta"),
+               menuSubItem("Analisis Spasial", tabName = "analisis_spasial_ekspl")
+      ),
+      menuItem("Uji Asumsi Data", tabName = "asumsi", icon = icon("check-circle"),
+               menuSubItem("Uji Normalitas", tabName = "uji_normalitas"),
+               menuSubItem("Uji Homogenitas", tabName = "uji_homogenitas")
+      ),
       menuItem("Statistik Inferensia", tabName = "inferensia", icon = icon("flask"),
                menuSubItem("Uji Beda Rata-rata", tabName = "uji_beda_rata"),
                menuSubItem("Uji Proporsi & Varians", tabName = "uji_prop_var"),
@@ -577,43 +586,145 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(
-                  title = "📋 Panduan Penggunaan Dashboard",
-                  width = 8,
-                  tags$ol(
-                    tags$li("🏠 Mulai dengan menjelajahi Beranda untuk informasi umum dataset."),
-                    tags$li("⚙️ Gunakan Manajemen Data untuk kategorisasi variabel kontinu."),
-                    tags$li("📊 Lakukan Eksplorasi Data untuk statistik deskriptif dan visualisasi."),
-                    tags$li("✅ Jalankan Uji Asumsi sebelum analisis inferensial."),
-                    tags$li("🧪 Gunakan menu Statistik Inferensia untuk uji hipotesis."),
-                    tags$li("📈 Manfaatkan Regresi Linear untuk analisis hubungan variabel."),
-                    tags$li("🌍 Gunakan Analisis Spasial untuk pola geografis dan autokorelasi.")
-                  ),
-                  br(),
+                  title = "ℹ️ Informasi Dashboard",
+                  width = 6,
                   div(
-                    style = "background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-teal);",
-                    p("💡 ", strong("Tips:"), " Gunakan toggle Dark Mode di header untuk pengalaman visual yang nyaman!", style = "margin: 0; color: #0277bd;")
+                    style = "background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; border-radius: 12px; margin-bottom: 15px;",
+                    div(
+                      style = "display: flex; align-items: center; margin-bottom: 15px;",
+                      div(
+                        style = "background: var(--gunmetal-primary); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;",
+                        tags$i(class = "fas fa-chart-line", style = "font-size: 20px;")
+                      ),
+                      div(
+                        h4("🎯 Dashboard Vulnera", style = "color: var(--gunmetal-primary); margin: 0;"),
+                        p("Analisis Kerentanan Sosial Indonesia", style = "color: #6c757d; margin: 0; font-size: 14px;")
+                      )
+                    ),
+                    p("Dashboard komprehensif untuk menganalisis Social Vulnerability Index (SoVI) dengan fitur analisis statistik dan spasial yang lengkap.", 
+                      style = "color: #495057; line-height: 1.6; margin-bottom: 15px;"),
+                    
+                    div(
+                      style = "background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px; border-radius: 8px; margin-bottom: 15px;",
+                      h5("🚀 Fitur Utama:", style = "color: #0277bd; margin-top: 0; margin-bottom: 8px;"),
+                      tags$ul(
+                        tags$li("📊 Eksplorasi data interaktif"),
+                        tags$li("🧪 Uji statistik lengkap"),
+                        tags$li("🗺️ Visualisasi spasial"),
+                        tags$li("📈 Analisis regresi"),
+                        style = "color: #0288d1; margin-bottom: 0; padding-left: 20px;"
+                      )
+                    ),
+                    
+                    div(
+                      style = "background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 12px; border-radius: 8px;",
+                      p("💡 ", strong("Tips:"), " Gunakan toggle Dark Mode di header untuk pengalaman visual yang optimal!", 
+                        style = "margin: 0; color: #f57c00; font-size: 14px;")
+                    )
+                  ),
+                  
+                  div(
+                    style = "background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-success);",
+                    div(
+                      style = "display: flex; align-items: center; gap: 10px; margin-bottom: 10px;",
+                      tags$i(class = "fas fa-external-link-alt", style = "color: #2e7d32;"),
+                      tags$strong("📚 Sumber Data:", style = "color: #2e7d32;")
+                    ),
+                    tags$a(href = metadata_article_url, "ScienceDirect Research Article", target = "_blank", 
+                           style = "color: #388e3c; text-decoration: none; font-weight: 600; font-size: 14px;"),
+                    p("Data penelitian terverifikasi untuk analisis kerentanan sosial", 
+                      style = "color: #43a047; margin: 5px 0 0 0; font-size: 12px;")
                   )
                 ),
                 box(
                   title = "📊 Metadata Variabel",
-                  width = 4,
-                  DTOutput("metadata_table_home")
+                  width = 6,
+                  div(
+                    style = "background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 20px; border-radius: 12px; margin-bottom: 15px;",
+                    div(
+                      style = "display: flex; align-items: center; margin-bottom: 15px;",
+                      div(
+                        style = "background: #9c27b0; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;",
+                        tags$i(class = "fas fa-table", style = "font-size: 20px;")
+                      ),
+                      div(
+                        h4("📋 Struktur Data", style = "color: #7b1fa2; margin: 0;"),
+                        p("Variabel dan Deskripsi", style = "color: #8e24aa; margin: 0; font-size: 14px;")
+                      )
+                    ),
+                    
+                    div(
+                      style = "background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); padding: 12px; border-radius: 8px; margin-bottom: 15px;",
+                      h5("📊 Kategori Variabel:", style = "color: #f57c00; margin-top: 0; margin-bottom: 8px;"),
+                      fluidRow(
+                        column(6,
+                               tags$ul(
+                                 tags$li("👥 Demografi"),
+                                 tags$li("🏠 Sosial Ekonomi"),
+                                 style = "color: #ef6c00; margin-bottom: 0; padding-left: 15px;"
+                               )
+                        ),
+                        column(6,
+                               tags$ul(
+                                 tags$li("🎓 Pendidikan"),
+                                 tags$li("🗺️ Geografis"),
+                                 style = "color: #ef6c00; margin-bottom: 0; padding-left: 15px;"
+                               )
+                        )
+                      )
+                    )
+                  ),
+                  
+                  DTOutput("metadata_table_home"),
+                  
+                  div(
+                    style = "background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%); padding: 12px; border-radius: 8px; margin-top: 15px;",
+                    p("📋 ", strong("Total:"), " 12 variabel utama untuk analisis kerentanan sosial komprehensif", 
+                      style = "margin: 0; color: #c2185b; font-size: 14px;")
+                  )
                 )
               ),
               fluidRow(
                 box(
-                  title = "ℹ️ Tentang Dashboard",
+                  title = "🚀 Panduan Penggunaan Dashboard",
                   width = 12,
-                  p("🎯 Dashboard Vulnera dikembangkan untuk menganalisis Social Vulnerability Index (SoVI) di Indonesia."),
-                  p("🔧 Dashboard ini menyediakan tools untuk eksplorasi data, uji statistik, analisis regresi, dan analisis spasial."),
-                  p("🗺️ ", strong("Fitur Baru:"), "Analisis spasial dengan GeoJSON dan matriks pembobot untuk mengidentifikasi pola geografis kerentanan sosial."),
-                  tags$hr(),
                   div(
-                    style = "display: flex; align-items: center; gap: 10px;",
-                    tags$strong("📚 Sumber Data: "),
-                    tags$a(href = metadata_article_url, "ScienceDirect Article", target = "_blank", 
-                           style = "color: var(--accent-teal); text-decoration: none; font-weight: 600;"),
-                    tags$span("🔗", style = "color: var(--accent-teal);")
+                    style = "background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 25px; border-radius: 12px;",
+                    fluidRow(
+                      column(6,
+                             h4("📋 Langkah-langkah Analisis:", style = "color: var(--gunmetal-primary); margin-top: 0;"),
+                             div(
+                               style = "background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);",
+                               tags$ol(
+                                 tags$li(div("🏠 ", strong("Beranda:"), " Pahami struktur data"), style = "margin-bottom: 8px; color: #495057;"),
+                                 tags$li(div("⚙️ ", strong("Manajemen Data:"), " Kategorisasi variabel"), style = "margin-bottom: 8px; color: #495057;"),
+                                 tags$li(div("📊 ", strong("Eksplorasi Data:"), " Analisis deskriptif"), style = "margin-bottom: 8px; color: #495057;"),
+                                 tags$li(div("✅ ", strong("Uji Asumsi:"), " Verifikasi normalitas"), style = "margin-bottom: 8px; color: #495057;"),
+                                 style = "padding-left: 20px; margin-bottom: 0;"
+                               )
+                             )
+                      ),
+                      column(6,
+                             h4("🔬 Analisis Lanjutan:", style = "color: var(--gunmetal-primary); margin-top: 0;"),
+                             div(
+                               style = "background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);",
+                               tags$ol(start = 5,
+                                 tags$li(div("🧪 ", strong("Statistik Inferensia:"), " Uji hipotesis"), style = "margin-bottom: 8px; color: #495057;"),
+                                 tags$li(div("📈 ", strong("Regresi:"), " Hubungan variabel"), style = "margin-bottom: 8px; color: #495057;"),
+                                 tags$li(div("🌍 ", strong("Analisis Spasial:"), " Pola geografis"), style = "margin-bottom: 8px; color: #495057;"),
+                                 tags$li(div("📋 ", strong("Interpretasi:"), " Kesimpulan hasil"), style = "margin-bottom: 8px; color: #495057;"),
+                                 style = "padding-left: 20px; margin-bottom: 0;"
+                               )
+                             )
+                      )
+                    ),
+                    
+                    div(
+                      style = "background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;",
+                      h5("🎯 Tujuan Analisis", style = "color: #2e7d32; margin-top: 0; margin-bottom: 10px;"),
+                      p("Mengidentifikasi faktor-faktor kerentanan sosial dan pola spasialnya untuk mendukung pengambilan kebijakan yang tepat sasaran", 
+                        style = "color: #388e3c; margin-bottom: 0; font-style: italic; line-height: 1.6;")
+                    )
                   )
                 )
               )
@@ -656,69 +767,317 @@ ui <- dashboardPage(
               )
       ),
       
-      # Eksplorasi Data Tab
-      tabItem(tabName = "eksplorasi",
-              h2("📊 Eksplorasi Data", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
+      # Statistik Deskriptif Tab
+      tabItem(tabName = "statistik_deskriptif",
+              h2("📈 Statistik Deskriptif", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
               fluidRow(
                 box(
-                  title = "📈 Statistik Deskriptif",
-                  width = 6,
+                  title = "📋 Ringkasan Statistik",
+                  width = 8,
                   selectInput("var_explorasi_desc", "Pilih Variabel:", choices = NULL),
                   verbatimTextOutput("summary_var"),
-                  p("📋 Statistik ini menunjukkan distribusi dasar variabel yang dipilih.")
+                  p("📋 Statistik ini menunjukkan distribusi dasar variabel yang dipilih seperti mean, median, kuartil, dan sebaran data.")
                 ),
                 box(
-                  title = "📊 Histogram",
-                  width = 6,
-                  selectInput("var_plot_hist", "Pilih Variabel:", choices = NULL),
-                  plotOutput("histPlot"),
-                  p("📊 Histogram menunjukkan distribusi frekuensi data.")
-                )
-              ),
-              fluidRow(
-                box(
-                  title = "📦 Boxplot",
-                  width = 6,
-                  selectInput("var_plot_box", "Pilih Variabel:", choices = NULL),
-                  plotOutput("boxPlot"),
-                  p("📦 Boxplot menunjukkan median, kuartil, dan outlier.")
-                ),
-                box(
-                  title = "🗺️ Peta Choropleth Berdasarkan Indikator",
-                  width = 6,
-                  selectInput("map_indicator", "Pilih Indikator untuk Peta:", choices = NULL),
-                  leafletOutput("choropleth_map"),
-                  p("🗺️ Peta menunjukkan distribusi spasial berdasarkan indikator yang dipilih.")
+                  title = "📊 Informasi Variabel",
+                  width = 4,
+                  div(
+                    style = "background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-success);",
+                    h4("💡 Tips Interpretasi:", style = "color: #2e7d32; margin-top: 0;"),
+                    tags$ul(
+                      tags$li("Mean: Rata-rata nilai"),
+                      tags$li("Median: Nilai tengah"),
+                      tags$li("Q1-Q3: Rentang kuartil"),
+                      tags$li("Min-Max: Rentang data"),
+                      style = "color: #388e3c; margin-bottom: 0;"
+                    )
+                  )
                 )
               ),
               fluidRow(
                 box(
                   title = "📋 Tabel Data Lengkap",
                   width = 12,
-                  DTOutput("full_data_table")
+                  DTOutput("full_data_table"),
+                  p("📋 Tabel lengkap menampilkan seluruh data untuk eksplorasi lebih detail.")
                 )
               )
       ),
       
-      # Uji Asumsi Tab
-      tabItem(tabName = "asumsi",
-              h2("✅ Uji Asumsi Data", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
+      # Histogram Tab
+      tabItem(tabName = "histogram",
+              h2("📊 Histogram", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
               fluidRow(
                 box(
-                  title = "📊 Uji Normalitas",
-                  width = 6,
-                  selectInput("var_norm", "Pilih Variabel:", choices = NULL),
-                  plotOutput("qqplot"),
-                  verbatimTextOutput("uji_norm"),
-                  p("📊 Uji Shapiro-Wilk dan Q-Q plot untuk menguji normalitas data.")
+                  title = "📊 Distribusi Frekuensi",
+                  width = 8,
+                  selectInput("var_plot_hist", "Pilih Variabel:", choices = NULL),
+                  plotOutput("histPlot", height = "400px"),
+                  p("📊 Histogram menunjukkan distribusi frekuensi data dan pola sebaran nilai.")
                 ),
                 box(
-                  title = "⚖️ Uji Homogenitas Varians",
+                  title = "⚙️ Pengaturan Histogram",
+                  width = 4,
+                  sliderInput("hist_bins", "Jumlah Bins:", min = 5, max = 50, value = 20),
+                  div(
+                    style = "background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-orange);",
+                    h4("📈 Interpretasi:", style = "color: #f57c00; margin-top: 0;"),
+                    tags$ul(
+                      tags$li("Bentuk distribusi (normal, skewed, dll)"),
+                      tags$li("Puncak distribusi (mode)"),
+                      tags$li("Penyebaran data"),
+                      tags$li("Outlier atau nilai ekstrem"),
+                      style = "color: #ef6c00; margin-bottom: 0;"
+                    )
+                  )
+                )
+              )
+      ),
+      
+      # Boxplot Tab
+      tabItem(tabName = "boxplot",
+              h2("📦 Boxplot", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
+              fluidRow(
+                box(
+                  title = "📦 Diagram Kotak-Garis",
+                  width = 8,
+                  selectInput("var_plot_box", "Pilih Variabel:", choices = NULL),
+                  plotOutput("boxPlot", height = "400px"),
+                  p("📦 Boxplot menunjukkan median, kuartil, dan outlier dalam data.")
+                ),
+                box(
+                  title = "📊 Komponen Boxplot",
+                  width = 4,
+                  div(
+                    style = "background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-teal);",
+                    h4("🔍 Komponen:", style = "color: #0277bd; margin-top: 0;"),
+                    tags$ul(
+                      tags$li("Garis tengah: Median (Q2)"),
+                      tags$li("Kotak: Q1 hingga Q3 (IQR)"),
+                      tags$li("Whiskers: Rentang normal"),
+                      tags$li("Titik: Outlier"),
+                      style = "color: #0288d1; margin-bottom: 0;"
+                    )
+                  ),
+                  br(),
+                  div(
+                    style = "background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 15px; border-radius: 8px; border-left: 4px solid #9c27b0;",
+                    h4("💡 Kegunaan:", style = "color: #7b1fa2; margin-top: 0;"),
+                    p("Identifikasi outlier dan perbandingan distribusi antar variabel", style = "color: #8e24aa; margin-bottom: 0;")
+                  )
+                )
+              )
+      ),
+      
+      # Peta Tab
+      tabItem(tabName = "peta",
+              h2("🗺️ Peta Choropleth", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
+              fluidRow(
+                box(
+                  title = "🗺️ Peta Distribusi Spasial",
+                  width = 8,
+                  selectInput("map_indicator", "Pilih Indikator untuk Peta:", choices = NULL),
+                  leafletOutput("choropleth_map", height = "500px"),
+                  p("🗺️ Peta menunjukkan distribusi spasial berdasarkan indikator yang dipilih dengan gradasi warna.")
+                ),
+                box(
+                  title = "🎨 Pengaturan Peta",
+                  width = 4,
+                  div(
+                    style = "background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-success);",
+                    h4("🗺️ Interpretasi Peta:", style = "color: #2e7d32; margin-top: 0;"),
+                    tags$ul(
+                      tags$li("Warna gelap: Nilai tinggi"),
+                      tags$li("Warna terang: Nilai rendah"),
+                      tags$li("Pola klaster: Daerah serupa"),
+                      tags$li("Hover: Detail nilai"),
+                      style = "color: #388e3c; margin-bottom: 0;"
+                    )
+                  ),
+                  br(),
+                  div(
+                    style = "background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); padding: 15px; border-radius: 8px; border-left: 4px solid #ff8f00;",
+                    h4("🔍 Tips:", style = "color: #f57c00; margin-top: 0;"),
+                    p("Gunakan zoom dan pan untuk eksplorasi detail wilayah tertentu", style = "color: #ef6c00; margin-bottom: 0;")
+                  )
+                )
+              )
+      ),
+      
+      # Analisis Spasial Eksplorasi Tab
+      tabItem(tabName = "analisis_spasial_ekspl",
+              h2("🌍 Analisis Spasial Eksplorasi", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
+              fluidRow(
+                box(
+                  title = "📊 Statistik Spasial Dasar",
                   width = 6,
-                  selectInput("var_homogen_val", "Variabel Respon:", choices = NULL),
-                  selectInput("var_homogen_group", "Variabel Grup:", choices = NULL),
+                  selectInput("spatial_var_ekspl", "Pilih Variabel untuk Analisis:", choices = NULL),
+                  actionButton("run_spatial_stats", "🧮 Hitung Statistik Spasial", class = "btn-primary"),
+                  br(), br(),
+                  verbatimTextOutput("spatial_stats_output"),
+                  p("📊 Statistik spasial dasar untuk memahami pola distribusi geografis.")
+                ),
+                box(
+                  title = "🗺️ Peta Autokorelasi",
+                  width = 6,
+                  plotOutput("spatial_autocorr_plot", height = "300px"),
+                  p("🗺️ Visualisasi pola autokorelasi spasial untuk identifikasi klaster.")
+                )
+              ),
+              fluidRow(
+                box(
+                  title = "📈 Interpretasi Analisis Spasial",
+                  width = 12,
+                  div(
+                    style = "background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%); padding: 20px; border-radius: 8px; border-left: 4px solid #3f51b5;",
+                    h4("🔍 Panduan Interpretasi:", style = "color: #3949ab; margin-top: 0;"),
+                    fluidRow(
+                      column(6,
+                             h5("🎯 Autokorelasi Positif:", style = "color: #5c6bc0;"),
+                             tags$ul(
+                               tags$li("Nilai serupa berkelompok"),
+                               tags$li("Pola klaster yang jelas"),
+                               tags$li("Dependensi spasial kuat"),
+                               style = "color: #7986cb;"
+                             )
+                      ),
+                      column(6,
+                             h5("🎯 Autokorelasi Negatif:", style = "color: #5c6bc0;"),
+                             tags$ul(
+                               tags$li("Nilai berbeda berdekatan"),
+                               tags$li("Pola checkerboard"),
+                               tags$li("Kompetisi spasial"),
+                               style = "color: #7986cb;"
+                             )
+                      )
+                    )
+                  )
+                )
+              )
+      ),
+      
+      # Uji Normalitas Tab
+      tabItem(tabName = "uji_normalitas",
+              h2("📊 Uji Normalitas", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
+              fluidRow(
+                box(
+                  title = "📈 Q-Q Plot",
+                  width = 8,
+                  selectInput("var_norm", "Pilih Variabel:", choices = NULL),
+                  plotOutput("qqplot", height = "400px"),
+                  p("📈 Q-Q plot membandingkan distribusi data dengan distribusi normal teoritis.")
+                ),
+                box(
+                  title = "📊 Hasil Uji Statistik",
+                  width = 4,
+                  verbatimTextOutput("uji_norm"),
+                  br(),
+                  div(
+                    style = "background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-success);",
+                    h4("💡 Interpretasi:", style = "color: #2e7d32; margin-top: 0;"),
+                    tags$ul(
+                      tags$li("p-value > 0.05: Normal"),
+                      tags$li("p-value ≤ 0.05: Tidak normal"),
+                      tags$li("Titik pada garis: Normal"),
+                      tags$li("Titik menyebar: Tidak normal"),
+                      style = "color: #388e3c; margin-bottom: 0;"
+                    )
+                  )
+                )
+              ),
+              fluidRow(
+                box(
+                  title = "📋 Panduan Uji Normalitas",
+                  width = 12,
+                  div(
+                    style = "background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 20px; border-radius: 8px; border-left: 4px solid var(--accent-teal);",
+                    h4("🔍 Shapiro-Wilk Test:", style = "color: #0277bd; margin-top: 0;"),
+                    fluidRow(
+                      column(6,
+                             h5("✅ Asumsi Terpenuhi:", style = "color: #0288d1;"),
+                             tags$ul(
+                               tags$li("p-value > α (0.05)"),
+                               tags$li("Data berdistribusi normal"),
+                               tags$li("Dapat menggunakan uji parametrik"),
+                               style = "color: #039be5;"
+                             )
+                      ),
+                      column(6,
+                             h5("❌ Asumsi Dilanggar:", style = "color: #0288d1;"),
+                             tags$ul(
+                               tags$li("p-value ≤ α (0.05)"),
+                               tags$li("Data tidak berdistribusi normal"),
+                               tags$li("Gunakan uji non-parametrik"),
+                               style = "color: #039be5;"
+                             )
+                      )
+                    )
+                  )
+                )
+              )
+      ),
+      
+      # Uji Homogenitas Tab
+      tabItem(tabName = "uji_homogenitas",
+              h2("⚖️ Uji Homogenitas Varians", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
+              fluidRow(
+                box(
+                  title = "🔧 Pengaturan Uji",
+                  width = 4,
+                  selectInput("var_homogen_group", "Pilih Variabel Grup:", choices = NULL),
+                  actionButton("run_homogen_test", "🚀 Jalankan Uji", class = "btn-primary"),
+                  br(), br(),
+                  div(
+                    style = "background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-orange);",
+                    h4("ℹ️ Informasi:", style = "color: #f57c00; margin-top: 0;"),
+                    p("Uji homogenitas akan dilakukan untuk semua variabel numerik terhadap variabel grup yang dipilih.", 
+                      style = "color: #ef6c00; margin-bottom: 0;")
+                  )
+                ),
+                box(
+                  title = "📊 Hasil Uji Homogenitas",
+                  width = 8,
                   verbatimTextOutput("uji_var"),
-                  p("⚖️ Uji Levene untuk homogenitas varians antar kelompok.")
+                  p("⚖️ Uji Levene untuk menguji homogenitas varians antar kelompok.")
+                )
+              ),
+              fluidRow(
+                box(
+                  title = "📈 Interpretasi Hasil",
+                  width = 12,
+                  div(
+                    style = "background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 20px; border-radius: 8px; border-left: 4px solid #9c27b0;",
+                    h4("🔍 Levene's Test:", style = "color: #7b1fa2; margin-top: 0;"),
+                    fluidRow(
+                      column(4,
+                             h5("✅ Homogen:", style = "color: #8e24aa;"),
+                             tags$ul(
+                               tags$li("p-value > 0.05"),
+                               tags$li("Varians antar grup sama"),
+                               tags$li("Asumsi ANOVA terpenuhi"),
+                               style = "color: #9c27b0;"
+                             )
+                      ),
+                      column(4,
+                             h5("❌ Tidak Homogen:", style = "color: #8e24aa;"),
+                             tags$ul(
+                               tags$li("p-value ≤ 0.05"),
+                               tags$li("Varians antar grup berbeda"),
+                               tags$li("Gunakan Welch's test"),
+                               style = "color: #9c27b0;"
+                             )
+                      ),
+                      column(4,
+                             h5("🔧 Solusi:", style = "color: #8e24aa;"),
+                             tags$ul(
+                               tags$li("Transformasi data"),
+                               tags$li("Uji non-parametrik"),
+                               tags$li("Robust statistics"),
+                               style = "color: #9c27b0;"
+                             )
+                      )
+                    )
+                  )
                 )
               )
       ),
@@ -917,6 +1276,7 @@ server <- function(input, output, session) {
         updateSelectInput(session, "var_plot_hist", choices = var_types$numeric)
         updateSelectInput(session, "var_plot_box", choices = var_types$numeric)
         updateSelectInput(session, "map_indicator", choices = var_types$numeric)
+        updateSelectInput(session, "spatial_var_ekspl", choices = var_types$numeric)
         updateSelectInput(session, "var_norm", choices = var_types$numeric)
         updateSelectInput(session, "var_homogen_val", choices = var_types$numeric)
         updateSelectInput(session, "var_homogen_group", choices = var_types$categorical)
@@ -1115,14 +1475,16 @@ server <- function(input, output, session) {
     }
   })
   
-  # Histogram
+  # Histogram with dynamic bins
   output$histPlot <- renderPlot({
     req(input$var_plot_hist)
     data <- current_data()
+    bins <- ifelse(is.null(input$hist_bins), 20, input$hist_bins)
+    
     if (!is.null(data) && input$var_plot_hist %in% names(data)) {
       ggplot(data, aes(x = .data[[input$var_plot_hist]])) +
-        geom_histogram(bins = 30, fill = "#2a3439", color = "#3d4a52", alpha = 0.8) +
-        ggtitle(paste("Histogram:", input$var_plot_hist)) +
+        geom_histogram(bins = bins, fill = "#2a3439", color = "#3d4a52", alpha = 0.8) +
+        ggtitle(paste("Histogram:", input$var_plot_hist, "(", bins, "bins)")) +
         theme_minimal() +
         theme(
           plot.title = element_text(color = "#2a3439", size = 14, face = "bold"),
@@ -2120,6 +2482,126 @@ server <- function(input, output, session) {
           title = "Hotspot Analysis",
           position = "bottomright"
         )
+    })
+  })
+  
+  # New reactive outputs for the reorganized menu structure
+  
+  # Homogenitas test button
+  observeEvent(input$run_homogen_test, {
+    req(input$var_homogen_group)
+    
+    output$uji_var <- renderText({
+      data <- current_data()
+      if (!is.null(data) && input$var_homogen_group %in% names(data)) {
+        tryCatch({
+          # Get all numeric variables
+          numeric_vars <- names(data)[sapply(data, is.numeric)]
+          results <- character(0)
+          
+          for (var in numeric_vars) {
+            if (var != input$var_homogen_group) {
+              # Create formula for Levene test
+              formula_str <- paste(var, "~", input$var_homogen_group)
+              test_result <- car::leveneTest(as.formula(formula_str), data = data)
+              
+              result_text <- paste0(
+                "=== UJI HOMOGENITAS: ", var, " ===\n",
+                "Levene's Test for Homogeneity of Variance\n",
+                "F-statistic: ", round(test_result$`F value`[1], 4), "\n",
+                "p-value: ", round(test_result$`Pr(>F)`[1], 6), "\n",
+                if (test_result$`Pr(>F)`[1] < 0.05) {
+                  "Kesimpulan: Varians TIDAK homogen (p < 0.05)"
+                } else {
+                  "Kesimpulan: Varians homogen (p >= 0.05)"
+                },
+                "\n\n"
+              )
+              results <- c(results, result_text)
+            }
+          }
+          paste(results, collapse = "")
+        }, error = function(e) {
+          paste("Error dalam uji homogenitas:", e$message)
+        })
+      } else {
+        "Pilih variabel grup untuk uji homogenitas"
+      }
+    })
+  })
+  
+  # Spatial statistics for exploration
+  observeEvent(input$run_spatial_stats, {
+    req(input$spatial_var_ekspl)
+    
+    output$spatial_stats_output <- renderText({
+      data <- current_data()
+      if (!is.null(data) && input$spatial_var_ekspl %in% names(data)) {
+        tryCatch({
+          selected_var <- data[[input$spatial_var_ekspl]]
+          
+          # Basic spatial statistics
+          result_text <- paste0(
+            "=== STATISTIK SPASIAL DASAR ===\n",
+            "Variabel: ", input$spatial_var_ekspl, "\n\n",
+            "Statistik Deskriptif:\n",
+            "Mean: ", round(mean(selected_var, na.rm = TRUE), 4), "\n",
+            "Median: ", round(median(selected_var, na.rm = TRUE), 4), "\n",
+            "Std Dev: ", round(sd(selected_var, na.rm = TRUE), 4), "\n",
+            "Min: ", round(min(selected_var, na.rm = TRUE), 4), "\n",
+            "Max: ", round(max(selected_var, na.rm = TRUE), 4), "\n\n",
+            "Analisis Spasial:\n",
+            "Jumlah observasi: ", length(selected_var[!is.na(selected_var)]), "\n",
+            "Missing values: ", sum(is.na(selected_var)), "\n",
+            "Variability: ", round(sd(selected_var, na.rm = TRUE) / mean(selected_var, na.rm = TRUE), 4), "\n\n",
+            "Catatan: Untuk analisis autokorelasi spasial lengkap,\n",
+            "gunakan menu Analisis Spasial utama."
+          )
+          
+          result_text
+        }, error = function(e) {
+          paste("Error dalam analisis spasial:", e$message)
+        })
+      } else {
+        "Pilih variabel untuk analisis spasial"
+      }
+    })
+    
+    # Simple spatial autocorrelation plot
+    output$spatial_autocorr_plot <- renderPlot({
+      data <- current_data()
+      if (!is.null(data) && input$spatial_var_ekspl %in% names(data)) {
+        tryCatch({
+          selected_var <- data[[input$spatial_var_ekspl]]
+          
+          # Create a simple lag plot for spatial exploration
+          n <- length(selected_var)
+          if (n > 1) {
+            lag_var <- c(NA, selected_var[-n])  # Simple lag-1
+            
+            plot_data <- data.frame(
+              original = selected_var,
+              lagged = lag_var
+            )
+            
+            ggplot(plot_data, aes(x = lagged, y = original)) +
+              geom_point(color = "#2a3439", alpha = 0.6) +
+              geom_smooth(method = "lm", color = "#4a5c66", se = TRUE) +
+              ggtitle(paste("Lag Plot:", input$spatial_var_ekspl)) +
+              xlab("Lagged Values") +
+              ylab("Original Values") +
+              theme_minimal() +
+              theme(
+                plot.title = element_text(color = "#2a3439", size = 14, face = "bold"),
+                axis.title = element_text(color = "#2a3439"),
+                axis.text = element_text(color = "#3d4a52")
+              )
+          }
+        }, error = function(e) {
+          # Return empty plot on error
+          ggplot() + theme_void()
+        })
+      }
     })
   })
 }
