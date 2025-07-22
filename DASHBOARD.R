@@ -49,7 +49,9 @@ metadata_article_url <- "https://www.sciencedirect.com/science/article/pii/S2352
 create_sample_data <- function() {
   set.seed(123)
   n <- 100
-  data.frame(
+  
+  # Create basic data
+  base_data <- data.frame(
     DISTRICTCODE = paste0("D", sprintf("%03d", 1:n)),
     CHILDREN = runif(n, 5, 15),
     FEMALE = runif(n, 48, 52),
@@ -64,6 +66,19 @@ create_sample_data <- function() {
     NOTRAINING = runif(n, 60, 95),
     stringsAsFactors = FALSE
   )
+  
+  # Add categorical variables for testing
+  base_data$REGION <- sample(c("Jawa", "Sumatera", "Kalimantan", "Sulawesi", "Papua"), n, replace = TRUE)
+  base_data$URBAN_RURAL <- sample(c("Urban", "Rural"), n, replace = TRUE)
+  base_data$HIGH_POVERTY <- ifelse(base_data$POVERTY > median(base_data$POVERTY), 1, 0)
+  base_data$HIGH_EDUCATION <- ifelse(base_data$LOWEDU < median(base_data$LOWEDU), 1, 0)
+  base_data$DEVELOPMENT_LEVEL <- sample(c("Tinggi", "Sedang", "Rendah"), n, replace = TRUE)
+  
+  # Create binary variables for proportion testing
+  base_data$SUCCESS_PROGRAM <- rbinom(n, 1, 0.3)
+  base_data$DISASTER_READY <- rbinom(n, 1, 0.6)
+  
+  return(base_data)
 }
 
 # 4. Create sample GeoJSON data if file not available
@@ -739,10 +754,17 @@ ui <- dashboardPage(
                 box(
                   title = "2️⃣ Uji T Dua Sampel",
                   width = 6,
-                  selectInput("group_two_samp", "Variabel Grup:", choices = NULL),
-                  selectInput("nilai_two_samp", "Variabel Nilai:", choices = NULL),
-                  checkboxInput("var_equal", "Asumsikan Varians Sama", value = TRUE),
-                  actionButton("run_ttest_two", "🚀 Jalankan Uji", class = "btn-primary"),
+                  selectInput("nilai_two_samp", "Variabel Nilai (Numerik):", choices = NULL),
+                  selectInput("group_two_samp", "Variabel Grup (2 Kategori):", choices = NULL),
+                  br(),
+                  checkboxInput("var_equal", "Asumsikan Varians Sama (Equal Variance)", value = TRUE),
+                  selectInput("ttest_alternative", "Hipotesis Alternatif:", 
+                             choices = list("Dua arah" = "two.sided", 
+                                          "Grup 1 > Grup 2" = "greater", 
+                                          "Grup 1 < Grup 2" = "less"),
+                             selected = "two.sided"),
+                  numericInput("conf_level_ttest", "Tingkat Kepercayaan:", value = 0.95, min = 0.01, max = 0.99, step = 0.01),
+                  actionButton("run_ttest_two", "🚀 Jalankan Uji T", class = "btn-primary"),
                   br(), br(),
                   verbatimTextOutput("hasil_ttest_two")
                 )
@@ -751,26 +773,61 @@ ui <- dashboardPage(
       
       # Uji Proporsi & Varians Tab
       tabItem(tabName = "uji_prop_var",
-              h2("📊 Uji Proporsi & Varians", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
+              h2("📊 Uji Proporsi & Varians Dua Sampel", align = "center", style = "color: var(--gunmetal-primary); margin-bottom: 30px;"),
               fluidRow(
                 box(
-                  title = "📈 Uji Proporsi Satu Sampel",
+                  title = "📈 Uji Proporsi Dua Sampel",
                   width = 6,
-                  numericInput("success_level", "Jumlah Sukses:", value = 0, min = 0),
-                  numericInput("total_trials", "Total Percobaan:", value = 0, min = 0),
-                  numericInput("p_hyp_one", "Proporsi Hipotesis:", 0.5, min = 0, max = 1),
-                  actionButton("run_prop_one", "🚀 Jalankan Uji", class = "btn-primary"),
+                  h4("Input Data Grup 1:"),
+                  numericInput("success_group1", "Jumlah Sukses Grup 1:", value = 0, min = 0),
+                  numericInput("total_group1", "Total Percobaan Grup 1:", value = 0, min = 0),
+                  h4("Input Data Grup 2:"),
+                  numericInput("success_group2", "Jumlah Sukses Grup 2:", value = 0, min = 0),
+                  numericInput("total_group2", "Total Percobaan Grup 2:", value = 0, min = 0),
+                  br(),
+                  h4("Atau gunakan data dari kolom:"),
+                  selectInput("prop_var_group", "Variabel Grup:", choices = NULL),
+                  selectInput("prop_var_success", "Variabel Sukses (0/1):", choices = NULL),
+                  checkboxInput("use_manual_prop", "Gunakan input manual di atas", value = TRUE),
+                  br(),
+                  selectInput("prop_alternative", "Hipotesis Alternatif:", 
+                             choices = list("Dua arah" = "two.sided", 
+                                          "Grup 1 > Grup 2" = "greater", 
+                                          "Grup 1 < Grup 2" = "less"),
+                             selected = "two.sided"),
+                  actionButton("run_prop_two", "🚀 Jalankan Uji Proporsi", class = "btn-primary"),
                   br(), br(),
-                  verbatimTextOutput("hasil_prop_one")
+                  verbatimTextOutput("hasil_prop_two")
                 ),
                 box(
-                  title = "📊 Uji Varians Dua Sampel",
+                  title = "📊 Uji Varians Dua Sampel (F-Test)",
                   width = 6,
                   selectInput("var_var_two_val", "Variabel Nilai:", choices = NULL),
                   selectInput("var_var_two_group", "Variabel Grup:", choices = NULL),
-                  actionButton("run_var_two", "🚀 Jalankan Uji", class = "btn-primary"),
+                  br(),
+                  selectInput("var_alternative", "Hipotesis Alternatif:", 
+                             choices = list("Dua arah" = "two.sided", 
+                                          "Varians 1 > Varians 2" = "greater", 
+                                          "Varians 1 < Varians 2" = "less"),
+                             selected = "two.sided"),
+                  numericInput("conf_level_var", "Tingkat Kepercayaan:", value = 0.95, min = 0.01, max = 0.99, step = 0.01),
+                  actionButton("run_var_two", "🚀 Jalankan Uji Varians", class = "btn-primary"),
                   br(), br(),
                   verbatimTextOutput("hasil_var_two")
+                )
+              ),
+              fluidRow(
+                box(
+                  title = "📋 Interpretasi Hasil",
+                  width = 12,
+                  h4("🔍 Panduan Interpretasi:"),
+                  tags$ul(
+                    tags$li("📈 Uji Proporsi: Membandingkan proporsi sukses antara dua grup"),
+                    tags$li("📊 Uji Varians: Membandingkan variabilitas data antara dua grup"),
+                    tags$li("🎯 P-value < 0.05: Ada perbedaan signifikan"),
+                    tags$li("🎯 P-value ≥ 0.05: Tidak ada perbedaan signifikan"),
+                    tags$li("📊 Confidence Interval: Rentang nilai yang mungkin untuk perbedaan parameter")
+                  )
                 )
               )
       ),
@@ -925,6 +982,8 @@ server <- function(input, output, session) {
         updateSelectInput(session, "nilai_two_samp", choices = var_types$numeric)
         updateSelectInput(session, "var_var_two_val", choices = var_types$numeric)
         updateSelectInput(session, "var_var_two_group", choices = var_types$categorical)
+        updateSelectInput(session, "prop_var_group", choices = var_types$categorical)
+        updateSelectInput(session, "prop_var_success", choices = var_types$numeric)
         updateSelectInput(session, "respon_anova_one", choices = var_types$numeric)
         updateSelectInput(session, "faktor_anova_one", choices = var_types$categorical)
         updateSelectInput(session, "respon_anova_two", choices = var_types$numeric)
@@ -1355,48 +1414,285 @@ server <- function(input, output, session) {
     output$hasil_ttest_two <- renderPrint({
       req(input$group_two_samp, input$nilai_two_samp)
       data <- current_data()
-      if (!is.null(data)) {
-        tryCatch({
-          formula_str <- paste(input$nilai_two_samp, "~", input$group_two_samp)
-          result <- t.test(as.formula(formula_str), data = data, var.equal = input$var_equal)
-          cat("🧪 Hasil Uji T Dua Sampel:\n")
-          print(result)
-        }, error = function(e) {
-          cat("❌ Error:", e$message)
-        })
+      
+      if (is.null(data)) {
+        cat("❌ Error: Data tidak tersedia\n")
+        return()
       }
-    })
-  })
-  
-  # Uji proporsi
-  observeEvent(input$run_prop_one, {
-    output$hasil_prop_one <- renderPrint({
-      req(input$success_level, input$total_trials, input$p_hyp_one)
+      
       tryCatch({
-        result <- prop.test(x = input$success_level, n = input$total_trials, p = input$p_hyp_one)
-        cat("📈 Hasil Uji Proporsi:\n")
+        # Validasi variabel
+        if (!input$nilai_two_samp %in% names(data)) {
+          cat("❌ Error: Variabel nilai tidak ditemukan dalam data\n")
+          return()
+        }
+        
+        if (!input$group_two_samp %in% names(data)) {
+          cat("❌ Error: Variabel grup tidak ditemukan dalam data\n")
+          return()
+        }
+        
+        # Periksa apakah variabel nilai numerik
+        if (!is.numeric(data[[input$nilai_two_samp]])) {
+          cat("❌ Error: Variabel nilai harus berupa data numerik\n")
+          return()
+        }
+        
+        # Periksa jumlah grup
+        unique_groups <- unique(data[[input$group_two_samp]])
+        unique_groups <- unique_groups[!is.na(unique_groups)]
+        
+        if (length(unique_groups) != 2) {
+          cat("❌ Error: Variabel grup harus memiliki tepat 2 kategori\n")
+          cat("Kategori yang ditemukan:", paste(unique_groups, collapse = ", "), "\n")
+          return()
+        }
+        
+        # Hapus missing values
+        clean_data <- data[!is.na(data[[input$nilai_two_samp]]) & !is.na(data[[input$group_two_samp]]), ]
+        
+        if (nrow(clean_data) < 4) {
+          cat("❌ Error: Data tidak cukup untuk melakukan uji (minimal 2 observasi per grup)\n")
+          return()
+        }
+        
+        # Periksa ukuran sampel per grup
+        group_sizes <- table(clean_data[[input$group_two_samp]])
+        if (any(group_sizes < 2)) {
+          cat("❌ Error: Setiap grup harus memiliki minimal 2 observasi\n")
+          cat("Ukuran grup:", paste(names(group_sizes), "=", group_sizes, collapse = ", "), "\n")
+          return()
+        }
+        
+        # Buat formula dan lakukan uji
+        formula_str <- paste(input$nilai_two_samp, "~", input$group_two_samp)
+        result <- t.test(as.formula(formula_str), 
+                        data = clean_data, 
+                        var.equal = input$var_equal,
+                        alternative = input$ttest_alternative,
+                        conf.level = input$conf_level_ttest)
+        
+        cat("🧪 Hasil Uji T Dua Sampel:\n")
+        cat("=====================================\n")
+        cat("Variabel:", input$nilai_two_samp, "\n")
+        cat("Grup:", input$group_two_samp, "\n")
+        cat("Asumsi varians sama:", ifelse(input$var_equal, "Ya", "Tidak"), "\n")
+        cat("Alternatif:", input$ttest_alternative, "\n")
+        cat("Tingkat Kepercayaan:", input$conf_level_ttest, "\n")
+        
+        # Hitung statistik deskriptif per grup
+        group_stats <- aggregate(clean_data[[input$nilai_two_samp]], 
+                               by = list(clean_data[[input$group_two_samp]]), 
+                               FUN = function(x) c(n = length(x), 
+                                                  mean = mean(x), 
+                                                  sd = sd(x)))
+        
+        cat("\nStatistik Deskriptif:\n")
+        for (i in 1:nrow(group_stats)) {
+          cat("Grup", group_stats[i,1], ":\n")
+          cat("  n =", round(group_stats[i,2][1], 0), "\n")
+          cat("  Mean =", round(group_stats[i,2][2], 4), "\n")
+          cat("  SD =", round(group_stats[i,2][3], 4), "\n")
+        }
+        cat("=====================================\n")
+        
         print(result)
+        
       }, error = function(e) {
-        cat("❌ Error:", e$message)
+        cat("❌ Error:", e$message, "\n")
+        cat("Pastikan variabel yang dipilih sesuai dan data tidak mengandung missing values berlebihan.\n")
       })
     })
   })
   
-  # Uji varians dua sampel
+  # Uji proporsi dua sampel
+  observeEvent(input$run_prop_two, {
+    output$hasil_prop_two <- renderPrint({
+      tryCatch({
+        if (input$use_manual_prop) {
+          # Menggunakan input manual
+          req(input$success_group1, input$total_group1, input$success_group2, input$total_group2)
+          
+          if (input$total_group1 <= 0 || input$total_group2 <= 0) {
+            cat("❌ Error: Total percobaan harus lebih besar dari 0\n")
+            return()
+          }
+          
+          if (input$success_group1 > input$total_group1 || input$success_group2 > input$total_group2) {
+            cat("❌ Error: Jumlah sukses tidak boleh lebih besar dari total percobaan\n")
+            return()
+          }
+          
+          # Lakukan uji proporsi dua sampel
+          result <- prop.test(x = c(input$success_group1, input$success_group2), 
+                             n = c(input$total_group1, input$total_group2),
+                             alternative = input$prop_alternative)
+          
+          cat("📈 Hasil Uji Proporsi Dua Sampel (Input Manual):\n")
+          cat("=====================================\n")
+          cat("Grup 1: ", input$success_group1, "/", input$total_group1, " (", 
+              round(input$success_group1/input$total_group1*100, 2), "%)\n")
+          cat("Grup 2: ", input$success_group2, "/", input$total_group2, " (", 
+              round(input$success_group2/input$total_group2*100, 2), "%)\n")
+          cat("=====================================\n")
+          print(result)
+          
+        } else {
+          # Menggunakan data dari kolom
+          req(input$prop_var_group, input$prop_var_success)
+          data <- current_data()
+          
+          if (is.null(data)) {
+            cat("❌ Error: Data tidak tersedia\n")
+            return()
+          }
+          
+          if (!input$prop_var_group %in% names(data) || !input$prop_var_success %in% names(data)) {
+            cat("❌ Error: Variabel yang dipilih tidak ditemukan dalam data\n")
+            return()
+          }
+          
+          # Validasi data
+          group_var <- data[[input$prop_var_group]]
+          success_var <- data[[input$prop_var_success]]
+          
+          # Pastikan variabel sukses adalah 0/1
+          if (!all(success_var %in% c(0, 1, NA))) {
+            cat("❌ Error: Variabel sukses harus berisi nilai 0 atau 1 saja\n")
+            return()
+          }
+          
+          # Hitung proporsi untuk setiap grup
+          prop_table <- table(group_var, success_var, useNA = "no")
+          
+          if (nrow(prop_table) != 2) {
+            cat("❌ Error: Variabel grup harus memiliki tepat 2 kategori\n")
+            return()
+          }
+          
+          if (ncol(prop_table) != 2) {
+            cat("❌ Error: Variabel sukses harus memiliki nilai 0 dan 1\n")
+            return()
+          }
+          
+          # Ekstrak data untuk uji proporsi
+          successes <- prop_table[, "1"]
+          totals <- rowSums(prop_table)
+          
+          result <- prop.test(x = successes, n = totals, alternative = input$prop_alternative)
+          
+          cat("📈 Hasil Uji Proporsi Dua Sampel (Dari Data):\n")
+          cat("=====================================\n")
+          cat("Grup:", rownames(prop_table)[1], "- Sukses:", successes[1], "/", totals[1], 
+              " (", round(successes[1]/totals[1]*100, 2), "%)\n")
+          cat("Grup:", rownames(prop_table)[2], "- Sukses:", successes[2], "/", totals[2], 
+              " (", round(successes[2]/totals[2]*100, 2), "%)\n")
+          cat("=====================================\n")
+          print(result)
+        }
+        
+      }, error = function(e) {
+        cat("❌ Error:", e$message, "\n")
+        cat("Pastikan semua input sudah benar dan data tersedia.\n")
+      })
+    })
+  })
+  
+  # Uji varians dua sampel (F-test)
   observeEvent(input$run_var_two, {
     output$hasil_var_two <- renderPrint({
       req(input$var_var_two_val, input$var_var_two_group)
       data <- current_data()
-      if (!is.null(data)) {
-        tryCatch({
-          formula_str <- paste(input$var_var_two_val, "~", input$var_var_two_group)
-          result <- var.test(as.formula(formula_str), data = data)
-          cat("📊 Hasil Uji Varians:\n")
-          print(result)
-        }, error = function(e) {
-          cat("❌ Error:", e$message)
-        })
+      
+      if (is.null(data)) {
+        cat("❌ Error: Data tidak tersedia\n")
+        return()
       }
+      
+      tryCatch({
+        # Validasi variabel
+        if (!input$var_var_two_val %in% names(data)) {
+          cat("❌ Error: Variabel nilai tidak ditemukan dalam data\n")
+          return()
+        }
+        
+        if (!input$var_var_two_group %in% names(data)) {
+          cat("❌ Error: Variabel grup tidak ditemukan dalam data\n")
+          return()
+        }
+        
+        # Periksa apakah variabel nilai numerik
+        if (!is.numeric(data[[input$var_var_two_val]])) {
+          cat("❌ Error: Variabel nilai harus berupa data numerik\n")
+          return()
+        }
+        
+        # Periksa jumlah grup
+        unique_groups <- unique(data[[input$var_var_two_group]])
+        unique_groups <- unique_groups[!is.na(unique_groups)]
+        
+        if (length(unique_groups) != 2) {
+          cat("❌ Error: Variabel grup harus memiliki tepat 2 kategori\n")
+          cat("Kategori yang ditemukan:", paste(unique_groups, collapse = ", "), "\n")
+          return()
+        }
+        
+        # Buat formula dan lakukan uji
+        formula_str <- paste(input$var_var_two_val, "~", input$var_var_two_group)
+        
+        # Hapus missing values
+        clean_data <- data[!is.na(data[[input$var_var_two_val]]) & !is.na(data[[input$var_var_two_group]]), ]
+        
+        if (nrow(clean_data) < 4) {
+          cat("❌ Error: Data tidak cukup untuk melakukan uji (minimal 2 observasi per grup)\n")
+          return()
+        }
+        
+        # Periksa ukuran sampel per grup
+        group_sizes <- table(clean_data[[input$var_var_two_group]])
+        if (any(group_sizes < 2)) {
+          cat("❌ Error: Setiap grup harus memiliki minimal 2 observasi\n")
+          cat("Ukuran grup:", paste(names(group_sizes), "=", group_sizes, collapse = ", "), "\n")
+          return()
+        }
+        
+        # Lakukan uji varians
+        result <- var.test(as.formula(formula_str), 
+                          data = clean_data, 
+                          alternative = input$var_alternative,
+                          conf.level = input$conf_level_var)
+        
+        cat("📊 Hasil Uji Varians Dua Sampel (F-Test):\n")
+        cat("=====================================\n")
+        cat("Variabel:", input$var_var_two_val, "\n")
+        cat("Grup:", input$var_var_two_group, "\n")
+        cat("Alternatif:", input$var_alternative, "\n")
+        cat("Tingkat Kepercayaan:", input$conf_level_var, "\n")
+        
+        # Hitung statistik deskriptif per grup
+        group_stats <- aggregate(clean_data[[input$var_var_two_val]], 
+                               by = list(clean_data[[input$var_var_two_group]]), 
+                               FUN = function(x) c(n = length(x), 
+                                                  mean = mean(x), 
+                                                  var = var(x), 
+                                                  sd = sd(x)))
+        
+        cat("\nStatistik Deskriptif:\n")
+        for (i in 1:nrow(group_stats)) {
+          cat("Grup", group_stats[i,1], ":\n")
+          cat("  n =", round(group_stats[i,2][1], 0), "\n")
+          cat("  Mean =", round(group_stats[i,2][2], 4), "\n")
+          cat("  Variance =", round(group_stats[i,2][3], 4), "\n")
+          cat("  SD =", round(group_stats[i,2][4], 4), "\n")
+        }
+        cat("=====================================\n")
+        
+        print(result)
+        
+      }, error = function(e) {
+        cat("❌ Error:", e$message, "\n")
+        cat("Pastikan variabel yang dipilih sesuai dan data tidak mengandung missing values berlebihan.\n")
+      })
     })
   })
   
