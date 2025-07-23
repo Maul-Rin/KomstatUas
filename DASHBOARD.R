@@ -8,7 +8,7 @@ required_packages <- c(
   "leaflet", "car", "tidyr", "shinyjs", "stats", "psych",
   "sf", "spdep", "geojsonio", "RColorBrewer", "htmltools",
   "plotly", "corrplot", "VIM", "mice", "Hmisc", "knitr", "rmarkdown",
-  "webshot", "htmlwidgets", "zip", "openxlsx", "gridExtra", "rmapshaper")
+  "webshot", "htmlwidgets", "zip", "openxlsx", "gridExtra", "rmapshaper","jsonlite")
 
 # Install missing packages
 missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
@@ -48,9 +48,9 @@ metadata_sovi <- data.frame(
   stringsAsFactors = FALSE)
 
 # URLs sesuai instruksi
-sovi_url <- "https://raw.githubusercontent.com/bmlmcmc/naspaclust/main/data/sovi_data.csv"
+sovi_url <- read.csv("data/sovi_data.csv")
 metadata_article_url <- "https://www.sciencedirect.com/science/article/pii/S2352340921010180"
-indonesia_geojson_url <- "https://raw.githubusercontent.com/superpikar/indonesia-geojson/master/indonesia-province-simple.json"
+indonesia_geojson_url <- "data/indonesia-province-simple.json"
 
 # 3. Fungsi untuk membuat data Indonesia yang realistis
 create_indonesia_region_names <- function(n = 50) {
