@@ -2,23 +2,42 @@
 # Dashboard Analisis Kerentanan Sosial - VERSI DENGAN PERBAIKAN ERROR DAN STRUKTUR
 
 
-# 1. Load Libraries dengan error handling
-required_packages <- c(
-  "shiny", "shinydashboard", "DT", "ggplot2", "dplyr", "readr", 
-  "leaflet", "car", "tidyr", "shinyjs", "stats", "psych",
-  "sf", "spdep", "geojsonio", "RColorBrewer", "htmltools",
-  "plotly", "corrplot", "VIM", "mice", "Hmisc", "knitr", "rmarkdown",
-  "webshot", "htmlwidgets", "zip", "openxlsx", "gridExtra", "rmapshaper","jsonlite")
+library("shiny")
+library("shinydashboard")
+library("DT")
+library("ggplot2")
+library("dplyr")
+library("readr")
+library("leaflet")
+library("car")
+library("tidyr")
+library("shinyjs")
+library("stats")
+library("psych")
+library("sf")
+library("spdep")
+library("geojsonio")
+library("RColorBrewer")
+library("htmltools")
+library("plotly")
+library("corrplot")
+library("VIM")
+library("mice")
+library("Hmisc")
+library("knitr")
+library("rmarkdown")
+library("webshot")
+library("htmlwidgets")
+library("zip")
+library("openxlsx")
+library("gridExtra")
+library("rmapshaper")
+library("jsonlite")
+library("rsconnect")
+#rsconnect::writeManifest()
+rsconnect::writeManifest(appDir = ".", appPrimaryDoc = "DASHBOARD.R", appMode = "shiny")
+rsconnect::setAccountInfo(name='komstat-maul', token='D77EC97FB3BE4351CE3CFE3CDE717E22', secret='TiD9+zYMpaTkBXQzPTPb9zWlH5+8sx5ncBKW/Ypn')
 
-# Install missing packages
-missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
-if (length(missing_packages) > 0) {
-  cat("Installing missing packages:", paste(missing_packages, collapse = ", "), "\n")
-  install.packages(missing_packages)
-}
-
-# Load libraries
-lapply(required_packages, library, character.only = TRUE)
 
 # 2. METADATA LENGKAP - 17 VARIABEL SESUAI PERMINTAAN
 metadata_sovi <- data.frame(
@@ -47,10 +66,10 @@ metadata_sovi <- data.frame(
   Tipe = c("Kategorik/ID", rep("Numerik", 11), "Numerik", "Numerik", "Kategorik", "Numerik", "Numerik"),
   stringsAsFactors = FALSE)
 
-# URLs sesuai instruksi
-sovi_url <- read.csv("data/sovi_data.csv")
+# URLs sesuai instruksi - PERBAIKAN PATH
+sovi_url <- "sovi_data.csv"  # Path relatif
 metadata_article_url <- "https://www.sciencedirect.com/science/article/pii/S2352340921010180"
-indonesia_geojson_url <- "data/indonesia-province-simple.json"
+indonesia_geojson_url <- "indonesia511.geojson"  # Path relatif
 
 # 3. Fungsi untuk membuat data Indonesia yang realistis
 create_indonesia_region_names <- function(n = 50) {

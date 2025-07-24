@@ -5,8 +5,6 @@ account: komstat-maul
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 15111778
-bundleId: 10659334
+bundleId: 10665815
 url: https://komstat-maul.shinyapps.io/UAS-Komstat_Maul/
 version: 1
-asMultiple: FALSE
-asStatic: FALSE
